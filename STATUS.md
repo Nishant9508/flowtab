@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **M0 Foundation**: repo layout, config via environment, Docker Compose, CI, test setup, banned-strings check, README skeleton.
-- [ ] **M1 Synthetic demo mode**: generator for fake accounts, VPCs, EKS pods, flow logs and fully hand-computable costs.
+- [x] **M1 Synthetic demo mode**: generator for fake accounts, VPCs, EKS pods, flow logs and fully hand-computable costs.
 - [ ] **M2 Data pipeline**: flow log integration via Athena (abstracted), read-only inventory snapshots (EC2, ELB, EKS, RDS, ElastiCache, etc.), classifier for route and charge type.
 - [ ] **M3 Pricing and bill reconciliation**: Price List API fallback, CUR 2.0 reconciliation (`line_item_resource_id`), bill-first allocation, waiting-for-bill state logic.
 - [ ] **M4 Multi-account/region**: AWS Organizations discovery, scopes configuration, coverage view per-account.
