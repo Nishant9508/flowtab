@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Dashboard } from './components/Dashboard'
 import { Setup } from './components/Setup'
+import { Alerts } from './components/Alerts'
 
 function App() {
   const [tab, setTab] = useState<'dashboard' | 'setup' | 'alerts'>('dashboard')
