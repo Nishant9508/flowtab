@@ -3,7 +3,7 @@ import { Dashboard } from './components/Dashboard'
 import { Setup } from './components/Setup'
 
 function App() {
-  const [tab, setTab] = useState<'dashboard' | 'setup'>('dashboard')
+  const [tab, setTab] = useState<'dashboard' | 'setup' | 'alerts'>('dashboard')
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
@@ -28,6 +28,7 @@ function App() {
       <main className="p-6">
         {tab === 'dashboard' && <Dashboard />}
         {tab === 'setup' && <Setup />}
+        {tab === "alerts" && <Alerts />}
       </main>
     </div>
   )
