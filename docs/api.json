@@ -1,0 +1,675 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "flowtab",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/demo/generate": {
+      "post": {
+        "tags": [
+          "demo"
+        ],
+        "summary": "Generate Demo Data",
+        "operationId": "generate_demo_data_api_v1_demo_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateDemoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/summary": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Summary",
+        "operationId": "get_summary_api_v1_network_summary_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Account Id"
+            },
+            "name": "account_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Region"
+            },
+            "name": "region",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Vpc Id"
+            },
+            "name": "vpc_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Charge Category"
+            },
+            "name": "charge_category",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Start Time"
+            },
+            "name": "start_time",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "End Time"
+            },
+            "name": "end_time",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/flows": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Flows",
+        "operationId": "get_flows_api_v1_network_flows_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Account Id"
+            },
+            "name": "account_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Region"
+            },
+            "name": "region",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Vpc Id"
+            },
+            "name": "vpc_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Charge Category"
+            },
+            "name": "charge_category",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Start Time"
+            },
+            "name": "start_time",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "End Time"
+            },
+            "name": "end_time",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/charges": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Charges",
+        "operationId": "get_charges_api_v1_network_charges_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChargesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/flow-graph": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Flow Graph",
+        "operationId": "get_flow_graph_api_v1_network_flow_graph_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/architecture": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Architecture",
+        "operationId": "get_architecture_api_v1_network_architecture_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/reconciliation": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Reconciliation",
+        "operationId": "get_reconciliation_api_v1_network_reconciliation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/coverage": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Coverage",
+        "operationId": "get_coverage_api_v1_network_coverage_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/findings": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Findings",
+        "operationId": "get_findings_api_v1_network_findings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/setup/checks": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Setup Checks",
+        "operationId": "get_setup_checks_api_v1_network_setup_checks_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/scopes/": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "List Scopes",
+        "description": "List all accounts and VPCs discovered/configured in the environment.",
+        "operationId": "list_scopes_api_v1_network_scopes__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/network/insights/": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Get Insights",
+        "description": "Returns insights across all active VPCs",
+        "operationId": "get_insights_api_v1_network_insights__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChargesResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "data": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "data"
+        ],
+        "title": "ChargesResponse"
+      },
+      "FindingItem": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "cost_impact": {
+            "type": "number",
+            "title": "Cost Impact"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "severity",
+          "cost_impact"
+        ],
+        "title": "FindingItem"
+      },
+      "FindingsResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingItem"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "findings"
+        ],
+        "title": "FindingsResponse"
+      },
+      "FlowItem": {
+        "properties": {
+          "sender_type": {
+            "type": "string",
+            "title": "Sender Type"
+          },
+          "sender_name": {
+            "type": "string",
+            "title": "Sender Name"
+          },
+          "receiver_type": {
+            "type": "string",
+            "title": "Receiver Type"
+          },
+          "receiver_name": {
+            "type": "string",
+            "title": "Receiver Name"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route"
+          },
+          "charge_category": {
+            "type": "string",
+            "title": "Charge Category"
+          },
+          "gb": {
+            "type": "number",
+            "title": "Gb"
+          },
+          "usd": {
+            "type": "number",
+            "title": "Usd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sender_type",
+          "receiver_type",
+          "route",
+          "charge_category",
+          "gb",
+          "usd"
+        ],
+        "title": "FlowItem"
+      },
+      "FlowsResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FlowItem"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "data"
+        ],
+        "title": "FlowsResponse"
+      },
+      "GenerateDemoRequest": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "title": "Account Id",
+            "default": "demo-123456"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "default": "us-east-1"
+          }
+        },
+        "type": "object",
+        "title": "GenerateDemoRequest"
+      },
+      "GenericResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "data": {
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "GenericResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "SummaryResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "total_gb": {
+            "type": "number",
+            "title": "Total Gb"
+          },
+          "total_usd": {
+            "type": "number",
+            "title": "Total Usd"
+          },
+          "by_category": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "By Category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "total_gb",
+          "total_usd",
+          "by_category"
+        ],
+        "title": "SummaryResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

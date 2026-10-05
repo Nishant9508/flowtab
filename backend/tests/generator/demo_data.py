@@ -1,59 +1,139 @@
-from datetime import timezone
+import random
 import datetime
+from datetime import timezone, timedelta
 from sqlalchemy.orm import Session
 from app.models import FlowtabSource, EniHistory, PodLease, BilledLine, FlowRecord
 
-def generate_demo_scenario(db: Session, account_id="demo-123", region="us-east-1", vpc_id="vpc-demo-1"):
-    # Clear existing data for this VPC
-    db.query(FlowtabSource).filter_by(vpc_id=vpc_id).delete()
-    db.query(EniHistory).filter_by(vpc_id=vpc_id).delete()
-    db.query(FlowRecord).filter_by(vpc_id=vpc_id).delete()
+def generate_demo_scenario(db: Session, account_id=None, region=None, vpc_id=None):
+    random.seed(42)
     
-    # 1. Setup Source
-    src = FlowtabSource(
-        id=f"{account_id}:{region}:{vpc_id}",
-        account_id=account_id,
-        region=region,
-        vpc_id=vpc_id,
-        name="Demo VPC",
-        mode="demo"
-    )
-    db.add(src)
+    # Clear existing
+    db.query(FlowtabSource).delete()
+    db.query(EniHistory).delete()
+    db.query(PodLease).delete()
+    db.query(BilledLine).delete()
+    db.query(FlowRecord).delete()
     
-    # Hour we are simulating: exactly 1 hour ago
+    accounts = ["111111111111", "222222222222"]
+    regions = ["us-east-2", "ap-south-1"]
+    vpcs = [
+        {"id": "vpc-a1", "acc": accounts[0], "reg": regions[0], "name": "Prod EKS"},
+        {"id": "vpc-a2", "acc": accounts[0], "reg": regions[0], "name": "Prod Data"},
+        {"id": "vpc-b1", "acc": accounts[1], "reg": regions[1], "name": "DR Data"}
+    ]
+    
+    for v in vpcs:
+        db.add(FlowtabSource(
+            id=f"{v['acc']}:{v['reg']}:{v['id']}",
+            account_id=v['acc'], region=v['reg'], vpc_id=v['id'],
+            name=v['name'], mode="demo"
+        ))
+        
     now = datetime.datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
-    hour = now - datetime.timedelta(hours=1)
+    start_time = now - timedelta(hours=168)
     
-    # 2. Setup ENIs
-    enis = [
-        EniHistory(eni_id="eni-nat", vpc_id=vpc_id, account_id=account_id, region=region, az_id=f"{region}a", resource_type="NAT", resource_id="nat-123", name="NAT Gateway A", private_ip="10.0.1.5", first_seen=hour, last_seen=now),
-        EniHistory(eni_id="eni-app1", vpc_id=vpc_id, account_id=account_id, region=region, az_id=f"{region}a", resource_type="EKS_NODE", resource_id="i-node1", name="EKS Node A", private_ip="10.0.1.10", first_seen=hour, last_seen=now),
-        EniHistory(eni_id="eni-app2", vpc_id=vpc_id, account_id=account_id, region=region, az_id=f"{region}b", resource_type="EKS_NODE", resource_id="i-node2", name="EKS Node B", private_ip="10.0.2.10", first_seen=hour, last_seen=now),
-        EniHistory(eni_id="eni-db", vpc_id=vpc_id, account_id=account_id, region=region, az_id=f"{region}b", resource_type="RDS", resource_id="db-master", name="RDS Master database", private_ip="10.0.2.20", first_seen=hour, last_seen=now),
-        EniHistory(eni_id="eni-elb", vpc_id=vpc_id, account_id=account_id, region=region, az_id=f"{region}a", resource_type="ELB", resource_id="elb-web", name="Internet facing ALB", private_ip="10.0.1.30", first_seen=hour, last_seen=now)
-    ]
-    db.add_all(enis)
+    # Create static ENIs and Pods...
+    # EKS in vpc-a1
+    services = ["gateway", "auth", "inventory", "workers", "reports"]
+    for i in range(12):
+        svc = services[i % len(services)]
+        db.add(PodLease(
+            cluster_name="eks-prod", namespace="default", workload=svc,
+            pod_name=f"{svc}-pod-{i}", pod_ip=f"10.0.1.{50+i}", node_ip=f"10.0.1.10",
+            first_seen=start_time, last_seen=now
+        ))
+
     db.commit()
 
-    # 3. Setup Pod Leases
-    pods = [
-        PodLease(cluster_name="demo-cluster", namespace="default", workload="frontend", pod_name="frontend-abcd", pod_ip="10.0.1.50", node_ip="10.0.1.10", first_seen=hour, last_seen=now),
-        PodLease(cluster_name="demo-cluster", namespace="backend", workload="api", pod_name="api-xyz", pod_ip="10.0.2.60", node_ip="10.0.2.10", first_seen=hour, last_seen=now)
-    ]
-    db.add_all(pods)
+    # Egress NAT in vpc-a1
+    db.add(EniHistory(eni_id="eni-nat", vpc_id="vpc-a1", account_id=accounts[0], region=regions[0], az_id="us-east-2a", resource_type="NAT", resource_id="nat-123", name="NAT Gateway", private_ip="10.0.1.5", first_seen=start_time, last_seen=now))
+    db.add(EniHistory(eni_id="eni-alb", vpc_id="vpc-a1", account_id=accounts[0], region=regions[0], az_id="us-east-2b", resource_type="ELB", resource_id="alb-pub", name="Public ALB", private_ip="10.0.1.6", first_seen=start_time, last_seen=now))
+    db.add(EniHistory(eni_id="eni-rds-us", vpc_id="vpc-a2", account_id=accounts[0], region=regions[0], az_id="us-east-2a", resource_type="RDS", resource_id="rds-master", name="RDS Master", private_ip="10.0.2.10", first_seen=start_time, last_seen=now))
+    db.add(EniHistory(eni_id="eni-rds-ap", vpc_id="vpc-b1", account_id=accounts[1], region=regions[1], az_id="ap-south-1a", resource_type="RDS", resource_id="rds-replica", name="RDS Replica", private_ip="10.0.3.10", first_seen=start_time, last_seen=now))
     db.commit()
 
-    # 4. Synthesize Flows
-    # We create mathematically specific flows to test bill allocations later
-    # E.g., Cross-AZ from frontend (in AZ-a, pod ip 10.0.1.50) to api (in AZ-b, pod ip 10.0.2.60)
-    flows = [
-        FlowRecord(hour=hour, vpc_id=vpc_id, sender_type="POD", sender_name="frontend-abcd", receiver_type="POD", receiver_name="api-xyz", route="cross-az", charge_category="Inter-AZ Data Transfer", bytes=10_000_000_000, estimated_usd=0.10, billed_usd=0.08, is_estimated=False),
-        FlowRecord(hour=hour, vpc_id=vpc_id, sender_type="POD", sender_name="api-xyz", receiver_type="EC2", receiver_name="RDS Master database", route="intra-az", charge_category="Intra-AZ Data Transfer", bytes=2_000_000_000, estimated_usd=0.0, billed_usd=0.0, is_estimated=False),
-        FlowRecord(hour=hour, vpc_id=vpc_id, sender_type="POD", sender_name="api-xyz", receiver_type="INTERNET", receiver_name="External API", route="nat-egress", charge_category="NAT Gateway Data Processing", bytes=5_000_000_000, estimated_usd=0.225, billed_usd=0.225, is_estimated=False),
-        FlowRecord(hour=hour, vpc_id=vpc_id, sender_type="INTERNET", sender_name="Public Web", receiver_type="ELB", receiver_name="Internet facing ALB", route="elb-ingress", charge_category="Inbound", bytes=1_000_000_000, estimated_usd=0.0, billed_usd=0.0, is_estimated=False),
-        FlowRecord(hour=hour, vpc_id=vpc_id, sender_type="ELB", sender_name="Internet facing ALB", receiver_type="INTERNET", receiver_name="Public Web", route="elb-egress", charge_category="Internet Egress", bytes=15_000_000_000, estimated_usd=1.35, billed_usd=1.35, is_estimated=False),
-        FlowRecord(hour=hour, vpc_id=vpc_id, sender_type="POD", sender_name="api-xyz", receiver_type="INTERNET", receiver_name="S3 Public via NAT", route="nat-egress", charge_category="NAT Gateway Data Processing", bytes=50_000_000_000, estimated_usd=2.25, billed_usd=2.25, is_estimated=False),
-    ]
-    db.add_all(flows)
-    db.commit()
+    total_s3_nat_bytes = 0
+    total_chatty_bytes = 0
+    total_peering_bytes = 0
+    total_alb_actual_bytes = 0
 
+    GB = 1024**3
+    rates = {
+        "nat-processing": 0.045, # per GB
+        "cross-az": 0.01,
+        "cross-region": 0.02, # simplified
+        "internet": 0.09
+    }
+    
+    for h in range(168):
+        hour = start_time + timedelta(hours=h)
+        is_estimated = (168 - h) <= 6
+        
+        flows = []
+        bills = []
+        
+        # a) Huge S3 out over NAT (vpc-a1)
+        # ~200 GB/hr
+        s3_bytes = 200 * GB + random.randint(-5*GB, 5*GB)
+        total_s3_nat_bytes += s3_bytes
+        c_s3 = (s3_bytes / GB) * rates["nat-processing"]
+        flows.append(FlowRecord(hour=hour, vpc_id="vpc-a1", sender_type="POD", sender_name="reports-pod-4", receiver_type="INTERNET", receiver_name="S3 via NAT", route="nat-egress", charge_category="NAT Gateway Data Processing", bytes=s3_bytes, estimated_usd=c_s3, billed_usd=c_s3 if not is_estimated else None, is_estimated=is_estimated))
+        if not is_estimated:
+            bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="NatGateway-Bytes", product_code="AmazonEC2", resource_id="nat-123", usage_gb=s3_bytes/GB, cost_usd=c_s3))
+            
+        # b) Chatty Cross-AZ
+        chatty_bytes = 50 * GB + random.randint(-2*GB, 2*GB)
+        total_chatty_bytes += chatty_bytes
+        c_chatty = (chatty_bytes / GB) * rates["cross-az"]
+        flows.append(FlowRecord(hour=hour, vpc_id="vpc-a1", sender_type="POD", sender_name="gateway-pod-0", receiver_type="POD", receiver_name="auth-pod-1", route="cross-az", charge_category="Inter-AZ Data Transfer", bytes=chatty_bytes, estimated_usd=c_chatty, billed_usd=c_chatty if not is_estimated else None, is_estimated=is_estimated))
+        if not is_estimated:
+            bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="DataTransfer-Regional-Bytes", product_code="AmazonEC2", resource_id="i-node1", usage_gb=chatty_bytes/GB, cost_usd=c_chatty))
+
+        # c) Region Peering Replication
+        peer_bytes = 10 * GB
+        total_peering_bytes += peer_bytes
+        c_peer = (peer_bytes / GB) * rates["cross-region"]
+        flows.append(FlowRecord(hour=hour, vpc_id="vpc-a2", sender_type="EC2", sender_name="RDS Master", receiver_type="EC2", receiver_name="RDS Replica", route="cross-region", charge_category="Inter-Region Data Transfer", bytes=peer_bytes, estimated_usd=c_peer, billed_usd=c_peer if not is_estimated else None, is_estimated=is_estimated))
+        if not is_estimated:
+            bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="DataTransfer-Out-Bytes", product_code="AmazonEC2", resource_id="rds-master", usage_gb=peer_bytes/GB, cost_usd=c_peer))
+
+        # d) Legitimate ALB Egress (miss-counted by flow logs)
+        # Flow logs see 50 GB. Reality is 50 / 0.56 = 89.28 GB
+        alb_flow_bytes = 50 * GB
+        alb_real_bytes = int(alb_flow_bytes / 0.56)
+        total_alb_actual_bytes += alb_real_bytes
+        c_alb_est = (alb_flow_bytes / GB) * rates["internet"]
+        c_alb_real = (alb_real_bytes / GB) * rates["internet"]
+        
+        flows.append(FlowRecord(hour=hour, vpc_id="vpc-a1", sender_type="ELB", sender_name="Public ALB", receiver_type="INTERNET", receiver_name="Public Web", route="elb-egress", charge_category="Internet Egress", bytes=alb_flow_bytes, estimated_usd=c_alb_est, billed_usd=c_alb_real if not is_estimated else None, is_estimated=is_estimated))
+        if not is_estimated:
+            bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="DataTransfer-Out-Bytes", product_code="AmazonEC2", resource_id="alb-pub", usage_gb=alb_real_bytes/GB, cost_usd=c_alb_real))
+
+        # e) Spike on day 6 (hours 120-144)
+        if 120 <= h < 144:
+            spike_bytes = 500 * GB
+            c_spike = (spike_bytes / GB) * rates["internet"]
+            flows.append(FlowRecord(hour=hour, vpc_id="vpc-a1", sender_type="POD", sender_name="workers-pod-3", receiver_type="INTERNET", receiver_name="Unknown IP", route="internet-egress", charge_category="Internet Egress", bytes=spike_bytes, estimated_usd=c_spike, billed_usd=c_spike if not is_estimated else None, is_estimated=is_estimated))
+            if not is_estimated:
+                bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="DataTransfer-Out-Bytes", product_code="AmazonEC2", resource_id="nat-123", usage_gb=spike_bytes/GB, cost_usd=c_spike))
+
+        db.add_all(flows)
+        db.add_all(bills)
+        
+    db.commit()
+    
+    # Store documentation of test facts
+    import os
+    docs_path = os.path.join(os.path.dirname(__file__), "../../../docs/DEMO_STORIES.md")
+
+    # Try to write if running locally, otherwise skip
+    try:
+        with open(docs_path, "w") as f:
+            f.write(f"# Demo Scenario Totals\n\nBase values over 7 days:\n")
+            f.write(f"- S3 over NAT approx: ${(total_s3_nat_bytes/GB)*rates['nat-processing']:.2f}\n")
+            f.write(f"- Chatty app cross AZ: ${(total_chatty_bytes/GB)*rates['cross-az']:.2f}\n")
+            f.write(f"- Replication peering: ${(total_peering_bytes/GB)*rates['cross-region']:.2f}\n")
+            f.write(f"- ALB true outbound (with 44% undercount on flow side): ${(total_alb_actual_bytes/GB)*rates['internet']:.2f}\n")
+            f.write(f"- Spike Day 6: ${(500 * 24)*rates['internet']:.2f}\n")
+    except Exception:
+        pass
