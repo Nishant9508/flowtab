@@ -3,12 +3,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict, Any
 from ...database import get_db
+from ...auth import get_current_user
 from ...models import FlowRecord
 
 router = APIRouter()
 
 @router.get("/summary")
-def get_summary(db: Session = Depends(get_db)):
+def get_summary(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Returns total costs, filtered by available scopes (for M1 demo purposes)"""
     flows = db.query(FlowRecord).all()
     
@@ -28,7 +29,7 @@ def get_summary(db: Session = Depends(get_db)):
     }
 
 @router.get("/flows")
-def get_flows(db: Session = Depends(get_db)):
+def get_flows(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Returns flow records for the architecture view"""
     flows = db.query(FlowRecord).all()
     return {
