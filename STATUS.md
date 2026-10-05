@@ -10,5 +10,5 @@
 - [x] **M5 Product UI**: summary, filtering by charge type, multi-level flow architecture diagram (account > region > VPC > AZ/subnet), bill comparison, setup probes.
 - [x] **M6 Findings and alerts**: plain-language cause explanation, weekly Slack summary, spike alerts.
 - [x] **M7 Security**: OIDC/SSO, local admin login, role-based access, audit logging, least-privilege IAM policy.
-- [ ] **M8 Packaging**: Terraform module for read-only roles/CUR, CloudFormation, Docker image, Helm chart, versioned releases, launch telemetry framework.
+- [x] **M8 Packaging**: Terraform module for read-only roles/CUR, CloudFormation, Docker image, Helm chart, versioned releases, launch telemetry framework.
 - [ ] **M9 Docs and launch assets**: Architecture diagram, manual validation guide, business/pricing docs, and a static landing page built from demo screenshots.
