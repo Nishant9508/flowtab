@@ -21,7 +21,7 @@ def test_flow_classification():
         "bytes": 10**9 # ~1GB
     })
     assert res['route'] == 'cross-az'
-    assert res['category'] == 'Inter-AZ Data Transfer'
+    assert res['charge_category'] == 'Inter-AZ Data Transfer'
     
     # Test 2: Intra-AZ
     res = classifier.classify_flow({
