@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: flowtab-backend
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+env:
+  DEMO_MODE: "true"
