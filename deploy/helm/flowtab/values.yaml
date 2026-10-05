@@ -10,4 +10,4 @@ service:
   port: 8000
 
 env:
-  DEMO_MODE: "true"
+  DEMO_MODE: false
