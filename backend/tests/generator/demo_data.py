@@ -73,14 +73,14 @@ def generate_demo_scenario(db: Session, account_id=None, region=None, vpc_id=Non
         bills = []
         
         # a) Huge S3 out over NAT (vpc-a1)
-        # ~200 GB/hr
-        s3_bytes = 200 * GB + random.randint(-5*GB, 5*GB)
+        # S3 ~ 58-60% of cost -> ~300 GB/hr -> $2268/week
+        s3_bytes = 300 * GB + random.randint(-5*GB, 5*GB)
         total_s3_nat_bytes += s3_bytes
         c_s3 = (s3_bytes / GB) * rates["nat-processing"]
         flows.append(FlowRecord(hour=hour, vpc_id="vpc-a1", sender_type="POD", sender_name="reports-pod-4", receiver_type="INTERNET", receiver_name="S3 via NAT", route="nat-egress", charge_category="NAT Gateway Data Processing", bytes=s3_bytes, estimated_usd=c_s3, billed_usd=c_s3 if not is_estimated else None, is_estimated=is_estimated))
         if not is_estimated:
             bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="NatGateway-Bytes", product_code="AmazonEC2", resource_id="nat-123", usage_gb=s3_bytes/GB, cost_usd=c_s3))
-            
+
         # b) Chatty Cross-AZ
         chatty_bytes = 50 * GB + random.randint(-2*GB, 2*GB)
         total_chatty_bytes += chatty_bytes
@@ -98,13 +98,13 @@ def generate_demo_scenario(db: Session, account_id=None, region=None, vpc_id=Non
             bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="DataTransfer-Out-Bytes", product_code="AmazonEC2", resource_id="rds-master", usage_gb=peer_bytes/GB, cost_usd=c_peer))
 
         # d) Legitimate ALB Egress (miss-counted by flow logs)
-        # Flow logs see 50 GB. Reality is 50 / 0.56 = 89.28 GB
-        alb_flow_bytes = 50 * GB
+        # Flow logs see 15 GB. Reality is 15 / 0.56 = 26.78 GB -> ~ $400 a week
+        alb_flow_bytes = 15 * GB
         alb_real_bytes = int(alb_flow_bytes / 0.56)
         total_alb_actual_bytes += alb_real_bytes
         c_alb_est = (alb_flow_bytes / GB) * rates["internet"]
         c_alb_real = (alb_real_bytes / GB) * rates["internet"]
-        
+
         flows.append(FlowRecord(hour=hour, vpc_id="vpc-a1", sender_type="ELB", sender_name="Public ALB", receiver_type="INTERNET", receiver_name="Public Web", route="elb-egress", charge_category="Internet Egress", bytes=alb_flow_bytes, estimated_usd=c_alb_est, billed_usd=c_alb_real if not is_estimated else None, is_estimated=is_estimated))
         if not is_estimated:
             bills.append(BilledLine(hour=hour, account_id=accounts[0], region=regions[0], usage_type="DataTransfer-Out-Bytes", product_code="AmazonEC2", resource_id="alb-pub", usage_gb=alb_real_bytes/GB, cost_usd=c_alb_real))

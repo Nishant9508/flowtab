@@ -424,6 +424,39 @@
   },
   "components": {
     "schemas": {
+      "ChargeItem": {
+        "properties": {
+          "charge_category": {
+            "type": "string",
+            "title": "Charge Category"
+          },
+          "gb": {
+            "type": "number",
+            "title": "Gb"
+          },
+          "usd": {
+            "type": "number",
+            "title": "Usd"
+          },
+          "share_of_total": {
+            "type": "number",
+            "title": "Share Of Total"
+          },
+          "flow_count": {
+            "type": "integer",
+            "title": "Flow Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "charge_category",
+          "gb",
+          "usd",
+          "share_of_total",
+          "flow_count"
+        ],
+        "title": "ChargeItem"
+      },
       "ChargesResponse": {
         "properties": {
           "status": {
@@ -432,7 +465,7 @@
           },
           "data": {
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/ChargeItem"
             },
             "type": "array",
             "title": "Data"
@@ -444,6 +477,37 @@
           "data"
         ],
         "title": "ChargesResponse"
+      },
+      "DailyData": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "gb": {
+            "type": "number",
+            "title": "Gb"
+          },
+          "usd": {
+            "type": "number",
+            "title": "Usd"
+          },
+          "hourly": {
+            "items": {
+              "$ref": "#/components/schemas/HourlyData"
+            },
+            "type": "array",
+            "title": "Hourly"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "gb",
+          "usd",
+          "hourly"
+        ],
+        "title": "DailyData"
       },
       "FindingItem": {
         "properties": {
@@ -606,6 +670,29 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "HourlyData": {
+        "properties": {
+          "hour": {
+            "type": "string",
+            "title": "Hour"
+          },
+          "gb": {
+            "type": "number",
+            "title": "Gb"
+          },
+          "usd": {
+            "type": "number",
+            "title": "Usd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "gb",
+          "usd"
+        ],
+        "title": "HourlyData"
+      },
       "SummaryResponse": {
         "properties": {
           "status": {
@@ -626,6 +713,13 @@
             },
             "type": "object",
             "title": "By Category"
+          },
+          "daily_series": {
+            "items": {
+              "$ref": "#/components/schemas/DailyData"
+            },
+            "type": "array",
+            "title": "Daily Series"
           }
         },
         "type": "object",
@@ -633,7 +727,8 @@
           "status",
           "total_gb",
           "total_usd",
-          "by_category"
+          "by_category",
+          "daily_series"
         ],
         "title": "SummaryResponse"
       },
